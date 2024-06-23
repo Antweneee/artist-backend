@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { InvalidCredentials } from 'src/errors/InvalidCredentials';
 import { v4 as uuid } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
+import { ConfigService } from '@nestjs/config';
 
 import { InvalidTokenType } from '../errors/InvalidTokenType';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,12 +19,15 @@ import { handleErrors } from 'src/utils/handle-errors';
 
 @Injectable()
 export class AuthenticationService {
+  private client_ID: string;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
-
-  clientId: string = '863131281139-gcn6rjpl47hbf7s5asqmq2q31dmtn9m4.apps.googleusercontent.com';
+    private configService: ConfigService,
+  ) {
+    this.client_ID = this.configService.get<string>('CLIENT_ID');
+  }
 
   async generateTokens(user: User) {
     const refreshJti = uuid();
@@ -89,11 +93,11 @@ export class AuthenticationService {
 
   async signInAuth(body: SignInOAuthDto) {
     const { token } = body
-    const client = new OAuth2Client(this.clientId);
+    const client = new OAuth2Client(this.client_ID);
 
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: this.clientId, // Specify the CLIENT_ID of the app that accesses the backend
+      audience: this.client_ID, // Specify the CLIENT_ID of the app that accesses the backend
     });
     const payload = ticket.getPayload();
     const { email, sub: googleId, name } = payload;

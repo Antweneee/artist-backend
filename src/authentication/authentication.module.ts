@@ -4,10 +4,12 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     PrismaModule,
+    ConfigModule,
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
